@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use App\Notifications\ErrorNotification;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
@@ -14,5 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        if(app()->environment('production')) {
+            $exceptions->report(function (Throwable $exception) {
+                Notification::route('telegram', config('services.telegram.channel_id'))
+                    ->notify(new ErrorNotification($exception));
+            });
+        }
     })->create();
